@@ -14,12 +14,12 @@
     "data_dir": "hcmdata",
     "batch_size": 48,
     "collate_fn": "MulT_TTE_collate_func",
-    "time_mean": 638.7367947002926,
-    "time_std": 320.2971819500909,
+    "time_mean": 827.358308,
+    "time_std": 340.217686,
     "edges": 46900,
     "edges_dir": "hcmdata/nwk_hcm/hcm_edges_new_simplify.pkl",
     "nodes_dir": "hcmdata/nwk_hcm/hcm_nodes_new.pkl",
-    "gps_range": [41.12, -8.71690, 41.22, -8.56924]
+    "gps_range": [10.7301793, 106.6164137, 10.8524436, 106.7132954]
   }
 
 }

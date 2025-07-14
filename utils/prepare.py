@@ -138,12 +138,12 @@ def load_datadoct_pre(args):
     if "porto" in args.dataset:
         scaler = StandardScaler()
         scaler.fit([[0, 0]])
-        scaler.mean_ = [107.497195, 3010.37456]
-        scaler.scale_ = [131.102877, 2750.78118]
+        scaler.mean_ = [7.50711210e+01, 1.86372397e+06]
+        scaler.scale_ = [7.72141953e+01, 1.03702657e+06]
         scaler2 = StandardScaler()
         scaler2.fit([[0, 0, 0, 0]])
-        scaler2.mean_ = [-8.62247695, 41.15923239, -8.62256569, 41.15929004]
-        scaler2.scale_ = [0.02520552, 0.01236445, 0.02526226, 0.01242564]
+        scaler2.mean_ = [106.6619435,   10.79170397, 106.66194183,  10.79170349]
+        scaler2.scale_ = [0.02704323, 0.03535142, 0.02704269, 0.03535217]
     elif "chengdu" in args.dataset:
         scaler = StandardScaler()
         scaler.fit([[0,0]])
