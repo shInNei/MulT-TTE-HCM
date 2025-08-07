@@ -12,7 +12,7 @@
   },
   "porto_MulT_TTE": {
     "data_dir": "hcmdata",
-    "batch_size": 32,
+    "batch_size": 48,
     "collate_fn": "MulT_TTE_collate_func",
     "time_mean": 1465.9966159756461,
     "time_std": 600.253345526064,

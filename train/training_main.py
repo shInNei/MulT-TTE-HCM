@@ -21,16 +21,18 @@ def test_model(model, data_loader, args):
     targets = list()
     inds = list()
     tqdm_loader = tqdm(data_loader)
-    for step, (features, truth_data) in enumerate(tqdm_loader):
-        if isinstance(features, dict) and 'inds' in features.keys():
-            inds.append(features['inds'])
-        features = to_var(features, args.device)
-        truth_data = to_var(truth_data, args.device)
+    
+    with torch.no_grad():
+        for step, (features, truth_data) in enumerate(tqdm_loader):
+            if isinstance(features, dict) and 'inds' in features.keys():
+                inds.append(features['inds'])
+            features = to_var(features, args.device)
+            truth_data = to_var(truth_data, args.device)
 
-        outputs, _ = model(features, args)
+            outputs, _ = model(features, args)
 
-        targets.append(truth_data.cpu().numpy())
-        predictions.append(outputs.cpu().detach().numpy())
+            targets.append(truth_data.cpu().numpy())
+            predictions.append(outputs.cpu().detach().numpy())
     pre2 = np.concatenate(predictions).squeeze()
     tar2 = np.concatenate(targets)
     if len(inds) > 0:
