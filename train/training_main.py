@@ -45,16 +45,21 @@ def test_model(model, data_loader, args):
     errors = np.abs(pre2 - tar2)
 
     if errors.ndim == 1:  
-        # scalar output → already per-sample
         per_sample_mae = errors
     else:
-        # vector/matrix output → take mean across last dimension
         per_sample_mae = errors.mean(axis=-1)
-    mae_file = os.path.join(args.model_folder, "per_sample_mae.csv")
+
+    # also compute per-sample MAPE
+    # avoid division by zero
+    eps = 1e-6
+    per_sample_mape = (errors / (tar2 + eps)) * 100
+
+    mae_file = os.path.join(args.model_folder, "per_sample_errors.csv")
     with open(mae_file, "w") as f:
-        f.write("id,mae\n")
-        for i, e in zip(inds, per_sample_mae):
-            f.write(f"{i},{e}\n")
+        f.write("id,real_time,mae,mape\n")
+        for i, t, e, m in zip(inds, tar2, per_sample_mae, per_sample_mape):
+            f.write(f"{i},{t},{e},{m}\n")
+
 
 
     metric = calculate_metrics(pre2, tar2, args, plot=True, inds=inds)
