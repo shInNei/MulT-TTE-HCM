@@ -41,6 +41,15 @@ def test_model(model, data_loader, args):
         inds = np.concatenate(inds)
     else:
         inds = None
+
+    per_sample_mae = np.mean(np.abs(pre2 - tar2), axis=-1)
+    mae_file = os.path.join(args.model_folder, "per_sample_mae.csv")
+    with open(mae_file, "w") as f:
+        f.write("id,mae\n")
+        for i, e in zip(inds, per_sample_mae):
+            f.write(f"{i},{e}\n")
+
+            
     metric = calculate_metrics(pre2, tar2, args, plot=True, inds=inds)
     print(metric)
     with open(f'{args.absPath}/data/result_{args.model}.txt', 'a') as f:
