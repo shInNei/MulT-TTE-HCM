@@ -52,8 +52,9 @@ def train_model(model: nn.Module, data_loaders: Dict[str, DataLoader],
 
                         outputs, loss_1 = model(features, args)
                         loss_2 = loss_func(truth=truth_data, predict=outputs)
-                        loss = (1 - beta) * loss_1 / (loss_1 / loss_2 + 1e-4).detach() + beta * loss_2
-
+                        # loss = (1 - beta) * loss_1 / (loss_1 / loss_2 + 1e-4).detach() + beta * loss_2
+                        loss = (1 - beta) * loss_1 + beta * loss_2
+                        
                         tqdm_loader.set_description(
                             f'{phase} epoch: {epoch}, {phase} loss: {(running_loss[phase] / steps) :.8f}, '
                             f'loss1: {loss_1.item()}, loss2: {loss_2.item()}')
