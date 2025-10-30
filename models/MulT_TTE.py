@@ -10,11 +10,36 @@ from transformers import BertConfig, BertForMaskedLM
 batch_first=False
 bidirectional=False
 
+class PositionalEncoding(nn.Module):
+    def __init__(self, d_model, dropout=0.1, max_len=5000):
+        super(PositionalEncoding, self).__init__()
+        self.dropout = nn.Dropout(p=dropout)
+
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        pe = pe.unsqueeze(0).transpose(0, 1) # Shape: (max_len, 1, d_model)
+        self.register_buffer('pe', pe)
+
+    def forward(self, x):
+        # x shape is (seq_len, batch, dim)
+        x = x + self.pe[:x.size(0), :]
+        return self.dropout(x)
+
 class MulT_TTE(nn.Module):
     def __init__(self, input_dim, seq_input_dim, seq_hidden_dim, seq_layer, bert_hiden_size, pad_token_id,
                  bert_attention_heads, bert_hidden_layers, decoder_layer, decode_head, vocab_size=47000):
 
         super(MulT_TTE, self).__init__()
+
+        if seq_input_dim != seq_hidden_dim:
+            raise ValueError(f"TransformerEncoder requires seq_input_dim ({seq_input_dim}) "
+                            f"and seq_hidden_dim ({seq_hidden_dim}) to be equal.")
+
+        d_model = seq_input_dim
+
         self.bert_config = BertConfig(num_attention_heads = bert_attention_heads, hidden_size = bert_hiden_size, pad_token_id=pad_token_id,
                                       vocab_size=vocab_size, num_hidden_layers = bert_hidden_layers)
         self.seg_embedding_learning = BertForMaskedLM(self.bert_config)
@@ -38,15 +63,32 @@ class MulT_TTE(nn.Module):
             nn.Linear(seq_input_dim, seq_input_dim)
         )
 
-        self.sequence = LayerNormGRU(seq_input_dim, seq_hidden_dim, seq_layer)
+        # self.sequence = LayerNormGRU(seq_input_dim, seq_hidden_dim, seq_layer)
 
-        self.seq_hidden_dim = seq_hidden_dim * 2 if bidirectional else seq_hidden_dim
+        # self.seq_hidden_dim = seq_hidden_dim * 2 if bidirectional else seq_hidden_dim
 
-        self.decoder_embed_dim = seq_hidden_dim * 2 if bidirectional else seq_hidden_dim
+        # self.decoder_embed_dim = seq_hidden_dim * 2 if bidirectional else seq_hidden_dim
+        self.pos_encoder = PositionalEncoding(d_model, dropout=0.1)
 
-        self.input2hid = nn.Linear(seq_hidden_dim+33, seq_hidden_dim)
+        encoder_layer = nn.TransformerEncoderLayer(
+                d_model=d_model, 
+                nhead=decode_head, # Use the 'decode_head' param
+                dim_feedforward=d_model * 4, # Standard practice
+                dropout=0.1,
+                batch_first=False # Match the original code's (seq_len, batch, dim)
+            )
+        self.transformer_encoder = nn.TransformerEncoder(
+                encoder_layer, 
+                num_layers=seq_layer # Use the 'seq_layer' param
+            )
+        
+        self.seq_hidden_dim = d_model
 
-        self.decoder = Decoder(d_model=self.decoder_embed_dim, N=decoder_layer, heads=decode_head)
+        # self.input2hid = nn.Linear(seq_hidden_dim+33, seq_hidden_dim)
+
+        self.input2hid = nn.Linear(self.seq_hidden_dim+33, self.seq_hidden_dim)
+
+        # self.decoder = Decoder(d_model=self.decoder_embed_dim, N=decoder_layer, heads=decode_head)
 
         self.hid2out = nn.Linear(self.seq_hidden_dim, 1)
 
@@ -82,10 +124,20 @@ class MulT_TTE(nn.Module):
         representation = self.represent(torch.cat([feature[..., 1:3], highwayrep, gpsrep, timene], dim=-1))  # 2,5,16,97
 
         representation = representation if batch_first else representation.transpose(0, 1).contiguous()
-        hiddens, rnn_states = self.sequence(representation, seq_lens=lens.long())
+        # hiddens, rnn_states = self.sequence(representation, seq_lens=lens.long())
 
-        decoder = self.decoder(hiddens, lens)
-        decoder = decoder if batch_first else decoder.transpose(0, 1).contiguous()
+        # decoder = self.decoder(hiddens, lens)
+        # decoder = decoder if batch_first else decoder.transpose(0, 1).contiguous()
+        rep_with_pos = self.pos_encoder(representation)
+        max_len = rep_with_pos.shape[0]
+        padding_mask = torch.arange(max_len, device=lens.device)[None, :] >= lens[:, None]
+
+        transformer_output = self.transformer_encoder(
+                    rep_with_pos, 
+                    src_key_padding_mask=padding_mask
+                )
+        decoder = transformer_output.transpose(0, 1).contiguous()
+
         pooled_decoder = self.pooling_sum(decoder, lens)
         pooled_hidden = torch.cat([pooled_decoder, weekrep[:, 0], daterep[:, 0], timerep[:, 0]], dim=-1)
         hidden = F.leaky_relu(self.input2hid(pooled_hidden))

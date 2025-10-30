@@ -1,0 +1,7 @@
+10/30 16:33:48epoch:1 lr:0.001
+dataset:chengdu_MulT_TTE identify:example_1
+loss:smoothL1
+{'input_dim': 120, 'seq_input_dim': 128, 'seq_hidden_dim': 128, 'seq_layer': 2, 'bert_hiden_size': 64, 'decoder_layer': 3, 'decode_head': 1, 'bert_hidden_layers': 4, 'bert_attention_heads': 8, 'pad_token_id': 27291}
+{'data_dir': 'data/chengdu', 'batch_size': 48, 'collate_fn': 'MulT_TTE_collate_func', 'time_mean': 805.2721966089857, 'time_std': 495.80028550412226, 'edges': 27290, 'edges_dir': 'data/chengdu/network-chengdu/chengdu_edges_new_simplify.pkl', 'nodes_dir': 'data/chengdu/network-chengdu/chengdu_nodes_new.pkl', 'gps_range': [30.593, 103.9746, 30.75, 104.167]}
+{'MAE': np.float32(1549.632), 'MAPE': np.float32(2.7317736), 'RMSE': np.float32(1702.9647), 'PEARR': np.float64(0.5528464178939655), 'PEARP': np.float32(0.0)}
+
