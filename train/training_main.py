@@ -116,7 +116,7 @@ def train_main(args):
         final_model = torch.load(os.path.join(model_folder, 'final_model.pkl'), map_location=args.device)
         start_epoch = final_model['epoch']
         model.load_state_dict(final_model['model_state_dict'], strict=False)
-        optimizer.load_state_dict(final_model['optimizer_state_dict'])
+        # optimizer.load_state_dict(final_model['optimizer_state_dict'])
         train_model(model=model, data_loaders=data_loaders,
                     loss_func=loss_func, optimizer=optimizer,
                     model_folder=model_folder, args=args, start_epoch=start_epoch)
