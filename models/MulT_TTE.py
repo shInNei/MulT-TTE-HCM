@@ -142,6 +142,9 @@ class MulT_TTE(nn.Module):
         pooled_hidden = torch.cat([pooled_decoder, weekrep[:, 0], daterep[:, 0], timerep[:, 0]], dim=-1)
         hidden = F.leaky_relu(self.input2hid(pooled_hidden))
         output = self.hid2out(hidden)
+
+        output = F.relu(output)
+        
         output = args.scaler.inverse_transform(output)
         return output, loss_1
 
