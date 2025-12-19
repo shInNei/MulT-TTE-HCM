@@ -56,9 +56,9 @@ def test_model(model, data_loader, args):
 
     mae_file = os.path.join(args.model_folder, "per_sample_errors.csv")
     with open(mae_file, "w") as f:
-        f.write("id,real_time,mae,mape\n")
-        for i, t, e, m in zip(inds, tar2, per_sample_mae, per_sample_mape):
-            f.write(f"{i},{t},{e},{m}\n")
+        f.write("id,real_time,pred_time,mae,mape\n")
+        for i, t, p, e, m in zip(inds, tar2, pre2, per_sample_mae, per_sample_mape):
+            f.write(f"{i},{t},{p},{e},{m}\n")
 
 
 
